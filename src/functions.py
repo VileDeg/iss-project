@@ -127,31 +127,6 @@ def DTFT(x, fharm, range, resolution, Fs, bigN):
 
     return precisefmax, precisefmaxmod, fsweep, Xdtft
 
-# def DTFT_whole(x, Fs, bigN):
-#     fsweep = np.arange(0, bigN)
-
-#     n = np.arange(0,bigN)
-
-#     A = np.zeros([bigN, bigN], dtype=complex)   
-#     for k in np.arange(0, bigN):
-#         A[k,:] = np.exp(-1j * 2 * np.pi * fsweep[k] / Fs * n)
-#     Xdtft = np.matmul(A,x.T)
-
-#     Xdtft = np.abs(Xdtft)
-#     precfmaxi = np.argmax(Xdtft)
-#     precisefmax = fsweep[precfmaxi]
-#     precisefmaxmod = Xdtft[precfmaxi]
-
-#     kall = np.arange(0,int(bigN/2) +1)
-#     #Xmag = np.abs(X[kall])
-#     f = kall / bigN * Fs
-
-#     zoom = 1
-#     plt.figure(figsize=(10,3))
-#     plt.plot(zoomed(fsweep, zoom), zoomed(Xdtft, zoom))
-#     plt.gca().set_ylabel('$|X(e^{j\omega})|$')
-
-#     return precisefmax, precisefmaxmod, fsweep, Xdtft
 
 def plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN):
     X = fft
@@ -197,7 +172,7 @@ def DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN):
         #plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN)
 
         freq = precisef / m
-        freqs[m-1] = freq
+        freqs[m-1] = precisef
         diffs[m-1] = freq - midif
         mods[m-1]  = precisemod
 
@@ -205,21 +180,21 @@ def DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN):
 
     return freqs, diffs, mods
 
-def generate_tone(tonesig, midif, numfperiods, cent, mult, Fs, bigN):
+def generate_tone(tonesig, midif, numfperiods, cent, mult, dtftres, Fs, bigN):
     mods  = np.zeros(mult)
     freqs = np.zeros(mult)
    
-    freqs, _, mods = DTFT_cent_mult(tonesig, midif, cent, mult, Fs, bigN)
+    freqs, _, mods = DTFT_multiple(tonesig, midif, cent, mult, dtftres, Fs, bigN)
 
-    x = rfftfreq(bigN, 1 / Fs)
+    l = bigN*2
+    x = rfftfreq(l, 1 / Fs)
     y = np.zeros(len(x))
 
     fis = freqs.astype(int)
     for n, fi in enumerate(fis):
         y[fi//2] = mods[n]
-        n+1
     
-    siglen = bigN*numfperiods
+    siglen = l*numfperiods
     y = irfft(y)
     yf = y
     for _ in range(1, numfperiods): #generate periods of 0.5 sec signal

@@ -25,5 +25,6 @@ def task4(tones, midif, myTones, cent, mult, dtftres, Fs, bigN):
         plt.gca().set_xlabel('$Frequency\,[Hz]$')
         plt.gca().set_ylabel('$log(PSD)$')
         plt.gca().grid()
+        plt.savefig('FIG/task4_tone_'+str(ct)+'.png')
 
         plt.show()
