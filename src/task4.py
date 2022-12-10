@@ -3,13 +3,13 @@ from functions import *
 
 
 
-def task4(tones, midif, myTones, cent, mult, Fs, bigN):
+def task4(tones, midif, myTones, cent, mult, dtftres, Fs, bigN):
     for ct in myTones:
-        freqs, _, mods = DTFT_cent_mult(tones[ct], midif[ct], cent, mult, Fs, bigN)
+        freqs, _, mods = DTFT_multiple(tones[ct], midif[ct], cent, mult, dtftres, Fs, bigN)
 
         x, y = calc_tone_rfft(ct, Fs, bigN)
 
-        picsize = (4,4)
+        picsize = (10,3)
         plt.figure(figsize=picsize)
         f0 = int(freqs[0])
         stop = f0 * (mult+1)

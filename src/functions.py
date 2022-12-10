@@ -111,121 +111,98 @@ def calc_fund_freq_acorr(tone, Fs):
 def zoomed(x, zoom):
     return x[:int(len(x)/zoom)]
 
-def DTFT(x, fft, fharm, mult, cent, resolution, Fs, bigN):
-    #X = np.fft.fft(x)
+def DTFT(x, fharm, range, resolution, Fs, bigN):
+    fsweep = np.linspace(fharm-range, fharm+range, resolution)
+    n = np.arange(0,bigN)
+
+    A = np.zeros([resolution, bigN],dtype=complex)   
+    for k in np.arange(0,resolution):
+        A[k,:] = np.exp(-1j * 2 * np.pi * fsweep[k] / Fs * n)
+    Xdtft = np.matmul(A,x.T)
+
+    Xdtft = np.abs(Xdtft)
+    precfmaxi = np.argmax(Xdtft)
+    precisefmax = fsweep[precfmaxi]
+    precisefmaxmod = Xdtft[precfmaxi]
+
+    return precisefmax, precisefmaxmod, fsweep, Xdtft
+
+# def DTFT_whole(x, Fs, bigN):
+#     fsweep = np.arange(0, bigN)
+
+#     n = np.arange(0,bigN)
+
+#     A = np.zeros([bigN, bigN], dtype=complex)   
+#     for k in np.arange(0, bigN):
+#         A[k,:] = np.exp(-1j * 2 * np.pi * fsweep[k] / Fs * n)
+#     Xdtft = np.matmul(A,x.T)
+
+#     Xdtft = np.abs(Xdtft)
+#     precfmaxi = np.argmax(Xdtft)
+#     precisefmax = fsweep[precfmaxi]
+#     precisefmaxmod = Xdtft[precfmaxi]
+
+#     kall = np.arange(0,int(bigN/2) +1)
+#     #Xmag = np.abs(X[kall])
+#     f = kall / bigN * Fs
+
+#     zoom = 1
+#     plt.figure(figsize=(10,3))
+#     plt.plot(zoomed(fsweep, zoom), zoomed(Xdtft, zoom))
+#     plt.gca().set_ylabel('$|X(e^{j\omega})|$')
+
+#     return precisefmax, precisefmaxmod, fsweep, Xdtft
+
+def plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN):
     X = fft
     N = bigN
-
-    r = int(cent / 2)
-
-    l = 2 ** (-r / 1200) * fharm
-    h = 2 ** ( r / 1200) * fharm
-    # li = int(2 ** (-r / 1200) * f) // 2
-    # hi = int(2 ** ( r / 1200) * f) // 2
-    FREQRANGE = int(h-fharm)
-    #int(h-l)
-    FREQPOINTS = resolution
-    print(r, l, h, FREQRANGE, FREQPOINTS)
+    fmax = fharm
 
     kall = np.arange(0,int(N/2) +1)
     Xmag = np.abs(X[kall])
-    #Xphase = np.angle(X[kall])
     f = kall / N * Fs
 
     zoom = 1 / fharm * mult * 100 * 10
     _, ax = plt.subplots(2,1, figsize=(10,3))
-    #plt.figure(figsize=(10,3)) # when plotting, needs normalization ... 
     ax[0].plot(zoomed(f, zoom), zoomed(Xmag, zoom))
     ax[0].set_ylabel('$|X[k]|$')
 
-    # finding the max and showing where we'll compute ... 
-    #fmax = f[np.argmax(Xmag)]
-    fmax = fharm
+    FREQRANGE = int(frange)
     ffrom = int(fmax-FREQRANGE)
     fto = int(fmax+FREQRANGE)
     Xmax = np.max(Xmag[ffrom:fto])
-    #ax[0].bar(ffrom,Xmax,fto-ffrom,linewidth=1,align='edge',color='orange',alpha=0.4) 
     ax[0].stem(fmax, Xmax, basefmt=" ", linefmt='r')
-    #fsweep = np.linspace(fmax-FREQRANGE, fmax+FREQRANGE, FREQPOINTS)
-    fsweep = np.linspace(l, h, FREQPOINTS)
-    n = np.arange(0,N)
-    # do the DTFT 
-    A = np.zeros([FREQPOINTS, N],dtype=complex)   
-    for k in np.arange(0,FREQPOINTS):
-        A[k,:] = np.exp(-1j * 2 * np.pi * fsweep[k] / Fs * n)     # norm. omega = 2 * pi * f / Fs ... 
-    Xdtft = np.matmul(A,x.T)
 
-    Xdtft = np.abs(Xdtft)
-    #ax[1].figure(figsize=(10,3)) 
-    ax[1].plot(fsweep, Xdtft)
+    ax[1].plot(zoomed(fsweep), zoomed(Xdtft))
     ax[1].set_ylabel('$|X(e^{j\omega})|$')
     precfmaxi = np.argmax(Xdtft)
-    #print(f"{precfmaxi=}")
     precisefmax = fsweep[precfmaxi]
-    ax[1].stem(precisefmax, Xdtft[precfmaxi], basefmt=" ", linefmt='r')
+    precisefmaxmod = Xdtft[precfmaxi]
 
-    print(fmax, precisefmax)
+    ax[1].stem(precisefmax, precisefmaxmod, basefmt=" ", linefmt='r')
 
-
-
-def DTFT_cent_mult(sig, midif, cent, mult, Fs, bigN):
+def DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN):
     freqs = np.zeros(mult)
     diffs = np.zeros(mult)
     mods  = np.zeros(mult)
-    #freq, dft   = calc_rfft(sig, Fs, bigN)
-    #l = len(sig)
-    #top = int(2 ** np.ceil(np.log2(l)))
-    #diff = top - l
-    #sig = np.pad(sig, (0, diff), mode = 'constant', constant_values=0)
-    #dft = FFT(sig)
-    #freq = np.arange(len(sig))
 
-    freq, fft = calc_rfft(sig, Fs, bigN)
+    #fft = np.abs(rfft(sig))
+    r = int(cent / 2)
+    fharm = midif
 
-    for m in range(1, mult+1): # 'mult' multiples of frequency 'midif'
-        f = midif * m
-        nf = f / Fs
-        max_xk = 0 # the peak value
-        max_nf = 0    # frequency of peak
-        DTFT(sig, fft, f, m, cent, Fs, bigN)
-        #r = int(cent / 2)
+    for m in range(1, mult+1): 
+        h = 2 ** (r / 1200) * fharm
+        frange = h - fharm
+        precisef, precisemod, fsweep, Xdtft = DTFT(sig, fharm, frange, dtftres, Fs, bigN)
+        #plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN)
 
-        #l = int(2 ** (-r / 1200) * f) // 2
-        #h = int(2 ** ( r / 1200) * f) // 2
+        freq = precisef / m
+        freqs[m-1] = freq
+        diffs[m-1] = freq - midif
+        mods[m-1]  = precisemod
 
-        # if h < len(dft):
-        #     ran = dft[l:h]
-        #     maxfi = l + np.argmax(ran)
-        #     maxf  = freq[maxfi]
+        fharm = freq * (m+1)
 
-        #     max_xk = dft[maxfi]
-        #     max_f_m = maxf
-        # else:
-        #     max_xk = 1
-        #     max_f_m = 1
-        # for c in range(-r, r+1): # 'cent' cents around a frequency
-        #     cent = 2 ** (c / 1200)
-        #     curr_nf = nf * cent
-
-        #     #xk = dft[curr_nf * Fs]
-        #     N = len(sig)
-        #     n = np.arange(N)
-        #     #e = np.exp(-2j * np.pi * curr_nf )
-        #     e = np.exp(-2j * np.pi * curr_nf * n / N)
-        #     #xk = np.abs(np.sum(e * sig))
-        #     xk = np.abs(np.dot(e, sig))
-
-        #     if xk > max_xk: 
-        #         max_xk = xk
-        #         max_nf = curr_nf
-
-        #max_f_m = max_nf * Fs
-        # max_f = max_f_m / m
-        
-        # freqs[m-1] = max_f_m
-        # diffs[m-1] = max_f - midif
-        # mods[m-1]  = max_xk
-    
     return freqs, diffs, mods
 
 def generate_tone(tonesig, midif, numfperiods, cent, mult, Fs, bigN):

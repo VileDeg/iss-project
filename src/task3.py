@@ -2,11 +2,12 @@ from base import *
 from functions import *
 
 
-def DTFT_Approx(sig, midif, cent, mult, Fs, bigN):
+def DTFT_freq_approx(sig, midif, cent, mult, dtftres, Fs, bigN):
     final_freq = 0
 
-    _, diffs, mods = DTFT_cent_mult(sig, midif, cent, mult, Fs)
+    _, diffs, mods = DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN)
 
+    # Calculate weighted average
     modsum = np.sum(mods)
     part = 1 / modsum
     fin_diff = 0
@@ -17,7 +18,7 @@ def DTFT_Approx(sig, midif, cent, mult, Fs, bigN):
     final_freq = midif + fin_diff
     return final_freq
 
-def task3(Tones, cent, mult, Fs, bigN):
+def task3(Tones, cent, mult, dtftres, Fs, bigN):
     tonesIndices = np.arange(MIDIFROM, MIDITO+1)
     
     g_OrigFreq   = np.zeros(MIDITO+1)
@@ -29,8 +30,11 @@ def task3(Tones, cent, mult, Fs, bigN):
             t, f = [eval(i) for i in line.strip().split()]
 
             g_OrigFreq[t] = f
-            #print("Tone: ", t)
-            g_RealFreq[t] = DTFT_Approx(Tones[t], f, cent, mult, Fs, bigN)
+            # if t < 80:
+            #     g_RealFreq[t] = 1
+            # else:
+            g_RealFreq[t] = DTFT_freq_approx(Tones[t], f, cent, mult, dtftres, Fs, bigN)
+
             realf.write(fmt % (t, g_RealFreq[t]))
 
     g_ClosestFreq = np.zeros(MIDITO+1)
@@ -42,13 +46,13 @@ def task3(Tones, cent, mult, Fs, bigN):
 
     picsize = (4, 4)
 
-    plt.figure(figsize=picsize)
-    plt.plot(tonesIndices, g_OrigFreq[MIDIFROM:], 'b')
-    plt.plot(tonesIndices, g_RealFreq[MIDIFROM:], 'r')
-    plt.gca().set_xlabel("$MIDI\,Tone$")
-    plt.gca().set_ylabel("$Frequency\,[Hz]$")
-    plt.gca().grid()
-    plt.savefig('FIG/midi_vs_real_freq.png')
+    # plt.figure(figsize=picsize)
+    # plt.plot(tonesIndices, g_OrigFreq[MIDIFROM:], 'b')
+    # plt.plot(tonesIndices, g_RealFreq[MIDIFROM:], 'r')
+    # plt.gca().set_xlabel("$MIDI\,Tone$")
+    # plt.gca().set_ylabel("$Frequency\,[Hz]$")
+    # plt.gca().grid()
+    # plt.savefig('FIG/midi_vs_real_freq.png')
 
     plt.figure(figsize=picsize)
     plt.plot(tonesIndices, np.abs(g_ClosestFreq - g_RealFreq)[MIDIFROM:])
