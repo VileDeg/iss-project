@@ -108,6 +108,63 @@ def calc_fund_freq_acorr(tone, Fs):
     return fund_freq
 
 
+def zoomed(x, zoom):
+    return x[:int(len(x)/zoom)]
+
+def DTFT(x, fft, fharm, mult, cent, resolution, Fs, bigN):
+    #X = np.fft.fft(x)
+    X = fft
+    N = bigN
+
+    r = int(cent / 2)
+
+    l = 2 ** (-r / 1200) * fharm
+    h = 2 ** ( r / 1200) * fharm
+    # li = int(2 ** (-r / 1200) * f) // 2
+    # hi = int(2 ** ( r / 1200) * f) // 2
+    FREQRANGE = int(h-fharm)
+    #int(h-l)
+    FREQPOINTS = resolution
+    print(r, l, h, FREQRANGE, FREQPOINTS)
+
+    kall = np.arange(0,int(N/2) +1)
+    Xmag = np.abs(X[kall])
+    #Xphase = np.angle(X[kall])
+    f = kall / N * Fs
+
+    zoom = 1 / fharm * mult * 100 * 10
+    _, ax = plt.subplots(2,1, figsize=(10,3))
+    #plt.figure(figsize=(10,3)) # when plotting, needs normalization ... 
+    ax[0].plot(zoomed(f, zoom), zoomed(Xmag, zoom))
+    ax[0].set_ylabel('$|X[k]|$')
+
+    # finding the max and showing where we'll compute ... 
+    #fmax = f[np.argmax(Xmag)]
+    fmax = fharm
+    ffrom = int(fmax-FREQRANGE)
+    fto = int(fmax+FREQRANGE)
+    Xmax = np.max(Xmag[ffrom:fto])
+    #ax[0].bar(ffrom,Xmax,fto-ffrom,linewidth=1,align='edge',color='orange',alpha=0.4) 
+    ax[0].stem(fmax, Xmax, basefmt=" ", linefmt='r')
+    #fsweep = np.linspace(fmax-FREQRANGE, fmax+FREQRANGE, FREQPOINTS)
+    fsweep = np.linspace(l, h, FREQPOINTS)
+    n = np.arange(0,N)
+    # do the DTFT 
+    A = np.zeros([FREQPOINTS, N],dtype=complex)   
+    for k in np.arange(0,FREQPOINTS):
+        A[k,:] = np.exp(-1j * 2 * np.pi * fsweep[k] / Fs * n)     # norm. omega = 2 * pi * f / Fs ... 
+    Xdtft = np.matmul(A,x.T)
+
+    Xdtft = np.abs(Xdtft)
+    #ax[1].figure(figsize=(10,3)) 
+    ax[1].plot(fsweep, Xdtft)
+    ax[1].set_ylabel('$|X(e^{j\omega})|$')
+    precfmaxi = np.argmax(Xdtft)
+    #print(f"{precfmaxi=}")
+    precisefmax = fsweep[precfmaxi]
+    ax[1].stem(precisefmax, Xdtft[precfmaxi], basefmt=" ", linefmt='r')
+
+    print(fmax, precisefmax)
 
 
 
@@ -116,33 +173,36 @@ def DTFT_cent_mult(sig, midif, cent, mult, Fs, bigN):
     diffs = np.zeros(mult)
     mods  = np.zeros(mult)
     #freq, dft   = calc_rfft(sig, Fs, bigN)
-    l = len(sig)
-    top = int(2 ** np.ceil(np.log2(l)))
-    diff = top - l
-    sig = np.pad(sig, (0, diff), mode = 'constant', constant_values=0)
-    dft = FFT(sig)
-    freq = np.arange(len(sig))
+    #l = len(sig)
+    #top = int(2 ** np.ceil(np.log2(l)))
+    #diff = top - l
+    #sig = np.pad(sig, (0, diff), mode = 'constant', constant_values=0)
+    #dft = FFT(sig)
+    #freq = np.arange(len(sig))
+
+    freq, fft = calc_rfft(sig, Fs, bigN)
 
     for m in range(1, mult+1): # 'mult' multiples of frequency 'midif'
         f = midif * m
         nf = f / Fs
         max_xk = 0 # the peak value
         max_nf = 0    # frequency of peak
-        r = int(cent / 2)
+        DTFT(sig, fft, f, m, cent, Fs, bigN)
+        #r = int(cent / 2)
 
-        l = int(2 ** (-r / 1200) * f) // 2
-        h = int(2 ** ( r / 1200) * f) // 2
+        #l = int(2 ** (-r / 1200) * f) // 2
+        #h = int(2 ** ( r / 1200) * f) // 2
 
-        if h < len(dft):
-            ran = dft[l:h]
-            maxfi = l + np.argmax(ran)
-            maxf  = freq[maxfi]
+        # if h < len(dft):
+        #     ran = dft[l:h]
+        #     maxfi = l + np.argmax(ran)
+        #     maxf  = freq[maxfi]
 
-            max_xk = dft[maxfi]
-            max_f_m = maxf
-        else:
-            max_xk = 1
-            max_f_m = 1
+        #     max_xk = dft[maxfi]
+        #     max_f_m = maxf
+        # else:
+        #     max_xk = 1
+        #     max_f_m = 1
         # for c in range(-r, r+1): # 'cent' cents around a frequency
         #     cent = 2 ** (c / 1200)
         #     curr_nf = nf * cent
@@ -160,11 +220,11 @@ def DTFT_cent_mult(sig, midif, cent, mult, Fs, bigN):
         #         max_nf = curr_nf
 
         #max_f_m = max_nf * Fs
-        max_f = max_f_m / m
+        # max_f = max_f_m / m
         
-        freqs[m-1] = max_f_m
-        diffs[m-1] = max_f - midif
-        mods[m-1]  = max_xk
+        # freqs[m-1] = max_f_m
+        # diffs[m-1] = max_f - midif
+        # mods[m-1]  = max_xk
     
     return freqs, diffs, mods
 
