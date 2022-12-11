@@ -5,7 +5,7 @@ from functions import *
 def DTFT_freq_approx(sig, midif, cent, mult, dtftres, Fs, bigN):
     final_freq = 0
 
-    _, diffs, mods = DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN)
+    _, diffs, mods, _ = DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN)
 
     # Calculate weighted average
     modsum = np.sum(mods)

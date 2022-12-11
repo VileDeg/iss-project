@@ -5,7 +5,7 @@ from functions import *
 
 def task4(tones, midif, myTones, cent, mult, dtftres, Fs, bigN):
     for ct in myTones:
-        freqs, _, mods = DTFT_multiple(tones[ct], midif[ct], cent, mult, dtftres, Fs, bigN)
+        freqs, _, mods, _ = DTFT_multiple(tones[ct], midif[ct], cent, mult, dtftres, Fs, bigN)
 
         x, y = calc_tone_rfft(ct, Fs, bigN)
 

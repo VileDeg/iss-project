@@ -140,12 +140,14 @@ def DTFT(x, fharm, range, resolution, Fs, bigN):
         A[k,:] = np.exp(-1j * 2 * np.pi * fsweep[k] / Fs * n)
     Xdtft = np.matmul(A,x.T)
 
-    Xdtft = np.abs(Xdtft)
-    precfmaxi = np.argmax(Xdtft)
-    precisefmax = fsweep[precfmaxi]
-    precisefmaxmod = Xdtft[precfmaxi]
+    Xdtftmod = np.abs(Xdtft)
+    precfmaxi = np.argmax(Xdtftmod)
+    precfmaxphase = np.angle(Xdtft[precfmaxi])
 
-    return precisefmax, precisefmaxmod, fsweep, Xdtft
+    precisefmax = fsweep[precfmaxi]
+    precisefmaxmod = Xdtftmod[precfmaxi]
+
+    return precisefmax, precisefmaxmod, precfmaxphase, fsweep, Xdtftmod
 
 
 def plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN):
@@ -177,9 +179,10 @@ def plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN):
     ax[1].stem(precisefmax, precisefmaxmod, basefmt=" ", linefmt='r')
 
 def DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN):
-    freqs = np.zeros(mult)
-    diffs = np.zeros(mult)
-    mods  = np.zeros(mult)
+    freqs  = np.zeros(mult)
+    diffs  = np.zeros(mult)
+    mods   = np.zeros(mult)
+    phases = np.zeros(mult)
 
     #fft = np.abs(rfft(sig))
     r = int(cent / 2)
@@ -189,53 +192,40 @@ def DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN):
         h = 2 ** (r / 1200) * fharm
         frange = h - fharm
 
-        freqlim = bigN / 2
-        if h >= freqlim:
-            continue
-        else:
-            precisef, precisemod, fsweep, Xdtft = DTFT(sig, fharm, frange, dtftres, Fs, bigN)
+        #freqlim = bigN / 2
+        # if h >= freqlim:
+        #     continue
+        # else:
+        precisef, precisemod, precisephase, fsweep, Xdtft = DTFT(sig, fharm, frange, dtftres, Fs, bigN)
         
         #plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN)
 
         freq = precisef / m
-        freqs[m-1] = precisef
-        diffs[m-1] = freq - midif
-        mods[m-1]  = precisemod
+        freqs [m-1] = precisef
+        diffs [m-1] = freq - midif
+        mods  [m-1] = precisemod
+        phases[m-1] = precisephase
 
         fharm = freq * (m+1)
 
-    return freqs, diffs, mods
+    return freqs, diffs, mods, phases
 
-def generate_tone(tonesig, midif, numfperiods, cent, mult, dtftres, Fs, bigN):
+def generate_tone(tonesig, midif, seconds, cent, mult, dtftres, Fs, bigN):
     mods  = np.zeros(mult)
     freqs = np.zeros(mult)
    
-    freqs, _, mods = DTFT_multiple(tonesig, midif, cent, mult, dtftres, Fs, bigN)
+    freqs, _, mods, phases = DTFT_multiple(tonesig, midif, cent, mult, dtftres, Fs, bigN)
 
-    freqlim = bigN / 2
-    T = bigN
-    x = rfftfreq(T, 1 / Fs)
-    y = np.zeros(len(x))
+    siglen = int(Fs*seconds)
+    t = np.linspace(0, seconds, siglen)
+    yf = np.zeros(siglen)
+    volume = 10
+    for i in range(mult):
+        yf += mods[i] * np.cos(2*np.pi*freqs[i]*t + phases[i])
+    yf = yf / siglen * volume
+    xf = np.arange(len(yf))
 
-    fis = freqs.astype(int)
-    for n, fi in enumerate(fis):
-        if fi < freqlim:
-            y[fi//2] = mods[n]
-    
-    siglen = T*numfperiods
-    y = irfft(y)
-    yf = y
-    for _ in range(1, numfperiods): #generate periods of 0.5 sec signal
-        yf = np.append(yf, y)
-
-    xf = np.linspace(
-        0, # start
-        siglen, # end <-- 1 sec
-        num = siglen, # number of frames
-        endpoint=False
-    )
-
-    return fis, mods, xf, yf
+    return freqs, mods, xf, yf
 
 def FFT(x):
     N = len(x)
