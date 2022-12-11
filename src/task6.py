@@ -1,7 +1,9 @@
 from base import *
 from functions import *
 
-def task6(tones, midif, cent, mult, dtftres, Fs, bigN):
+def task6(cent, mult, dtftres):
+    tones, midif, _, Fs, bigN = Init()
+
     with open('skladba.txt', 'r') as skladf:
         maxtonelen = 0
         outlen = 0
@@ -29,7 +31,7 @@ def task6(tones, midif, cent, mult, dtftres, Fs, bigN):
         for i in range(tonefrom, toneto):
             freqs, mods, genx, synt[i] = generate_tone(
                 tones[i], midif[i], maxtonelen_s, cent, mult, dtftres, Fs, bigN)
-            print(i, len(synt[i]))
+            print("Tone["+str(i)+"] generated!")
             #sf.write('../audio/tmp/'+str(i)+'.wav', synt[i], Fs)    
         out = np.zeros(outlen_n)
         skladf.seek(0)

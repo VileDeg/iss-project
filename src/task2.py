@@ -1,7 +1,27 @@
 from base import *
 from functions import *
 
-def task2(Fs, bigN):
+def calc_fund_freq_fft(tonesig, Fs, bigN):
+    freq, psd = calc_rfft(tonesig, Fs, bigN)
+    maxi = np.argmax(psd)
+    return freq[maxi]
+
+def calc_fund_freq_acorr(tonesig, Fs):
+    sg = tonesig
+    acorr = np.correlate(sg, sg, 'full')
+    acorr = acorr[len(acorr)//2:]
+    df = np.diff(acorr)
+    for i, d in enumerate(df):
+        if d > 0:
+            start = i
+            break
+    peak = np.argmax(acorr[start:]) + start
+    fund_freq = Fs / peak
+    return fund_freq
+
+def task2():
+    tones, midif, _, Fs, bigN = Init()
+
     tonesIndices  = np.arange(MIDIFROM, MIDITO+1)
     
     g_OrigFreq    = np.zeros(MIDITO+1)
@@ -16,8 +36,8 @@ def task2(Fs, bigN):
             t, f = [eval(i) for i in line.strip().split()]
 
             g_OrigFreq[t]  = f
-            g_DFTFreq[t]   = calc_fund_freq_fft(t, Fs, bigN)
-            g_AcorrFreq[t] = calc_fund_freq_acorr(t, Fs)
+            g_DFTFreq[t]   = calc_fund_freq_fft(tones[t], Fs, bigN)
+            g_AcorrFreq[t] = calc_fund_freq_acorr(tones[t], Fs)
 
             dft_diff = np.abs(g_OrigFreq[t] - g_DFTFreq[t])
             acorr_diff = np.abs(g_OrigFreq[t] - g_AcorrFreq[t])
@@ -28,7 +48,7 @@ def task2(Fs, bigN):
             acorrf.write(fmt % (t, g_AcorrFreq[t]))
             closestf.write(fmt % (t, g_ClosestFreq[t]))
 
-    picsize = (4, 4)
+    picsize = (10, 3)
     plt.figure(figsize=picsize)
 
     plt.plot(tonesIndices, np.abs(g_OrigFreq - g_DFTFreq)[MIDIFROM:], 'b')

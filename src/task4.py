@@ -1,13 +1,13 @@
 from base import *
 from functions import *
 
+def task4(cent, mult, dtftres):
+    tones, midif, mytones, Fs, bigN = Init()
 
-
-def task4(tones, midif, myTones, cent, mult, dtftres, Fs, bigN):
-    for ct in myTones:
+    for ct in mytones:
         freqs, _, mods, _ = DTFT_multiple(tones[ct], midif[ct], cent, mult, dtftres, Fs, bigN)
 
-        x, y = calc_tone_rfft(ct, Fs, bigN)
+        x, y = calc_rfft(tones[ct], Fs, bigN)
 
         picsize = (10,3)
         plt.figure(figsize=picsize)
@@ -21,7 +21,8 @@ def task4(tones, midif, myTones, cent, mult, dtftres, Fs, bigN):
         plt.plot(xf, yf)
 
         logmod = to_logPSD(mods)
-        plt.stem(freqs, logmod, basefmt=" ", linefmt='r')
+        #plt.stem(freqs, logmod, basefmt=" ", linefmt='r')
+        plt.plot(freqs, logmod, 'x', color='red')
         plt.gca().set_xlabel('$Frequency\,[Hz]$')
         plt.gca().set_ylabel('$log(PSD)$')
         plt.gca().grid()

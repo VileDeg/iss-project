@@ -1,15 +1,14 @@
 from base import *
 from functions import *
 
-def task5(tones, midif, myTones, seconds, cent, mult, dtftres, Fs, bigN):
-    sf.default_subtype('WAV')
+def task5(seconds, cent, mult, dtftres):
+    tones, midif, mytones, Fs, bigN = Init()
+    
     path = '../audio/'
     prfx = ['a', 'b', 'c']
 
-    #from_sec = [0.37, 0.33, 0.498]
-
-    for i, ct in enumerate(myTones):
-        freqs, mods, genx, geny = generate_tone(
+    for i, ct in enumerate(mytones):
+        freqs, _, genx, geny = generate_tone(
             tones[ct], midif[ct], seconds, cent, mult, dtftres, Fs, bigN)
 
         picsize = (10,6)

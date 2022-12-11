@@ -1,14 +1,16 @@
 from base import *
 from functions import *
 
-def task1(tones, chosenTones, midif, Fs, bigN):
+def task1():
+    tones, midif, mytones, Fs, bigN = Init()
+
     sf.default_subtype('WAV')
     path = '../audio/'
     prfx = ['a', 'b', 'c']
 
     from_sec = [0.37, 0.33, 0.498]
 
-    for i, ct in enumerate(chosenTones):
+    for i, ct in enumerate(mytones):
         xf, yf = get_signal_periods(tones[ct], midif[ct], 3, from_sec[i], Fs)
 
         picsize=(10,6)

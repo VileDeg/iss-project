@@ -40,6 +40,8 @@ def Init():
         for line in midif:
             t, f = [eval(i) for i in line.strip().split()]
             midifreq[t] = f
+    
+    mytones = [36, 44, 103]
 
-    return tones, midifreq, sampleFreq, bigN
+    return tones, midifreq, mytones, sampleFreq, bigN
 

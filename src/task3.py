@@ -18,7 +18,9 @@ def DTFT_freq_approx(sig, midif, cent, mult, dtftres, Fs, bigN):
     final_freq = midif + fin_diff
     return final_freq
 
-def task3(Tones, cent, mult, dtftres, Fs, bigN):
+def task3(cent, mult, dtftres):
+    tones, midif, _, Fs, bigN = Init()
+
     tonesIndices = np.arange(MIDIFROM, MIDITO+1)
     
     g_OrigFreq   = np.zeros(MIDITO+1)
@@ -30,10 +32,7 @@ def task3(Tones, cent, mult, dtftres, Fs, bigN):
             t, f = [eval(i) for i in line.strip().split()]
 
             g_OrigFreq[t] = f
-            # if t < 80:
-            #     g_RealFreq[t] = 1
-            # else:
-            g_RealFreq[t] = DTFT_freq_approx(Tones[t], f, cent, mult, dtftres, Fs, bigN)
+            g_RealFreq[t] = DTFT_freq_approx(tones[t], f, cent, mult, dtftres, Fs, bigN)
 
             realf.write(fmt % (t, g_RealFreq[t]))
 
@@ -44,15 +43,7 @@ def task3(Tones, cent, mult, dtftres, Fs, bigN):
 
             g_ClosestFreq[t] = f
 
-    picsize = (4, 4)
-
-    # plt.figure(figsize=picsize)
-    # plt.plot(tonesIndices, g_OrigFreq[MIDIFROM:], 'b')
-    # plt.plot(tonesIndices, g_RealFreq[MIDIFROM:], 'r')
-    # plt.gca().set_xlabel("$MIDI\,Tone$")
-    # plt.gca().set_ylabel("$Frequency\,[Hz]$")
-    # plt.gca().grid()
-    # plt.savefig('FIG/midi_vs_real_freq.png')
+    picsize = (10, 3)
 
     plt.figure(figsize=picsize)
     plt.plot(tonesIndices, np.abs(g_ClosestFreq - g_RealFreq)[MIDIFROM:])
