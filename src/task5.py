@@ -5,52 +5,56 @@ def task5(tones, midif, myTones, numfperiods, cent, mult, dtftres, Fs, bigN):
     sf.default_subtype('WAV')
     path = '../audio/'
     prfx = ['a', 'b', 'c']
+
+    from_sec = [0.37, 0.33, 0.498]
+
     for i, ct in enumerate(myTones):
-        l = bigN*2
-        x = rfftfreq(l, 1 / Fs)
+        T = bigN
+        x = rfftfreq(T, 1 / Fs)
         y = np.zeros(len(x))
 
-        fis, mods, xf, yf = generate_tone(
+        fis, mods, genx, geny = generate_tone(
             tones[ct], midif[ct], numfperiods, cent, mult, dtftres, Fs, bigN)
 
-        # fis  = chosenData[ct][0].astype(int)
-        # mods = chosenData[ct][1]
         for j, fi in enumerate(fis):
             y[fi//2] = mods[j]
 
         zoom = 1
-        #picmaxw = 10
-        #picw = 3*numfperiods
-        #picsize = (picw if picw <= picmaxw else picmaxw, 3)
         picsize = (10,6)
         
-        
-        _, ax = plt.subplots(2,1, figsize=picsize)
-        ax[0].plot(x[:len(x)//zoom], y[:len(y)//zoom])
-        ax[0].set_xlabel('$Frequency\,[Hz]$')
-        ax[0].set_ylabel('$DFT$')
+        # _, ax = plt.subplots(2,1, figsize=picsize)
+        # ax[0].plot(x[:len(x)//zoom], y[:len(y)//zoom])
+        # ax[0].set_xlabel('$Frequency\,[Hz]$')
+        # ax[0].set_ylabel('$DFT$')
+        # ax[0].grid()
+        # tone = tones[ct]
+        # tonef = midif[ct]
+        # tone_period = 1 / tonef
+        # tone_period_n = int(tone_period*Fs)+1
+        # tone_from = 0
+        # tone_to = tone_period_n
+        # tone = tone[tone_from:tone_to]
+        # tonex = np.arange(len(tone))
+
+        displayperiods = 10
+        #start = from_sec[i]
+        start = 0
+        xf, yf = get_signal_periods(tones[ct], midif[ct], displayperiods, start, Fs)
+
+        _, ax = plt.subplots(2, 1, figsize=picsize)
+        ax[0].plot(xf, yf)
+        ax[0].set_xlabel('$Time\,[s]$')
+        ax[0].set_ylabel('$Amplitude$')
         ax[0].grid()
-        #ax[0].show()
 
-        # siglen = bigN*numfperiods
-        # #y = np.pad(y, )
-        # y = irfft(y)
-        # yf = y
-        # #sig = np.pad(sig, (0, siglen//2), mode='constant', constant_values=sig[-1])
-        # for _ in range(1, numfperiods): #generate periods of 0.5 sec signal
-        #     yf = np.append(yf, y)
+        f0 = fis[0]
+        xf, yf = get_signal_periods(geny, f0, displayperiods, start, Fs)
 
-        # plt.figure(figsize=picsize)
-        # xf = np.linspace(
-        #     0, # start
-        #     siglen, # end <-- 1 sec
-        #     num = siglen, # number of frames
-        #     endpoint=False
-        # )
-        ax[1].plot(xf[:len(xf)//zoom], yf[:len(yf)//zoom])
-        ax[1].set_xlabel('$Frequency\,[Hz]$')
-        ax[1].set_ylabel('$DFT$')
+        ax[1].plot(xf, yf)
+        ax[1].set_xlabel('$Time\,[s]$')
+        ax[1].set_ylabel('$Amplitude$')
         ax[1].grid()
-        #ax[1].show()
+
+        plt.savefig('FIG/tone_'+str(ct)+'_synt.png')
 
         sf.write(path + prfx[i] + '.wav', yf, Fs)

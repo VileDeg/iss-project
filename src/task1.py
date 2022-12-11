@@ -1,25 +1,29 @@
 from base import *
 from functions import *
 
-def task1(tones, chosenTones, Fs, bigN):
-    #plot_midi_tone(36)
-    #plot_midi_tone(44)
-    #plot_midi_tone(103)
-    plot_three_periods(36, 65.41, 0.37, Fs)
-    plot_three_periods(44, 103.83, 0.33, Fs)
-    plot_three_periods(103, 3135.96, 0.498, Fs)
-
-    for t in chosenTones:
-        plot_tone_rfft(t, Fs, bigN)
-    #print("Rfft:")
-    #plot_tone_rfft_raw(36)
-    #print("Real:")
-    #plot_midi_tone(36)
-    #print("Synthezied:")
-    #plot_tone_synthesized(t)
-    
+def task1(tones, chosenTones, midif, Fs, bigN):
     sf.default_subtype('WAV')
     path = '../audio/'
     prfx = ['a', 'b', 'c']
-    for i, t in enumerate(chosenTones):
-        sf.write(path + prfx[i] + '_orig.wav', tones[t], Fs)
+
+    from_sec = [0.37, 0.33, 0.498]
+
+    for i, ct in enumerate(chosenTones):
+        xf, yf = get_signal_periods(tones[ct], midif[ct], 3, from_sec[i], Fs)
+
+        picsize=(10,6)
+        _, ax = plt.subplots(2, 1, figsize=picsize)
+        ax[0].plot(xf, yf)
+        ax[0].set_xlabel('$Time\,[s]$')
+        ax[0].set_ylabel('$Amplitude$')
+        ax[0].grid()    
+
+        xf, yf = calc_rfft(tones[ct], Fs, bigN)
+        ax[1].plot(xf, to_logPSD(yf))
+        ax[1].set_xlabel('$Frequency\,[Hz]$')
+        ax[1].set_ylabel('$Amplitude$')
+        ax[1].grid()
+
+        plt.savefig('FIG/tone_'+str(ct)+'one_period.png')
+
+        sf.write(path + prfx[i] + '_orig.wav', tones[ct], Fs)

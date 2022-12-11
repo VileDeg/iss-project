@@ -17,46 +17,66 @@ def functions_set_tones(Tones):
     global g_Tones
     g_Tones = Tones
 
-def plot_signal(x, y, xlabel, ylabel, picsize):
-    plt.figure(figsize=picsize)
-    plt.plot(x,y)
-    plt.gca().set_xlabel(xlabel)
-    plt.gca().set_ylabel(ylabel)
-    plt.gca().grid()
-    plt.show()
+# def plot_signal(x, y, xlabel, ylabel, picsize):
+#     plt.figure(figsize=picsize)
+#     plt.plot(x,y)
+#     plt.gca().set_xlabel(xlabel)
+#     plt.gca().set_ylabel(ylabel)
+#     plt.gca().grid()
+#     plt.show()
 
-def plot_midi_tone(tone, bigN, Fs):
-    nl = bigN
-    yf = g_Tones[tone, 0:nl]
-    picsize = (6, 4)
+# def plot_midi_tone(tone, bigN, Fs):
+#     nl = bigN
+#     yf = g_Tones[tone, 0:nl]
+#     picsize = (6, 4)
     
-    xf = np.linspace(
-        0, # start
-        len(yf) / Fs,
-        num = nl,
-        endpoint=False
-    )
+#     xf = np.linspace(
+#         0, # start
+#         len(yf) / Fs,
+#         num = nl,
+#         endpoint=False
+#     )
 
-    plot_signal(xf, yf, g_TimeLb, g_XtLb, picsize)
+#     plot_signal(xf, yf, g_TimeLb, g_XtLb, picsize)
 
-def plot_three_periods(tone, midi_freq, startfrom_sec, Fs): 
-    midi_period_sec = 1 / midi_freq
-    midi_period_n = int(midi_period_sec * Fs) + 1
-    three_periods = midi_period_n * 3
+def get_signal_periods(sig, f0, periods, from_sec, Fs):
+    T = 1 / f0
+    T_n = int(T * Fs) + 1
+    T_n_more = T_n * periods
 
-    startfrom_n = int(startfrom_sec * Fs)
-    endat_n = startfrom_n+three_periods
+    from_n = int(from_sec * Fs)
+    to_n = from_n+T_n_more
 
-    yf = g_Tones[tone, startfrom_n:endat_n]
+    yf = sig[from_n:to_n]
 
-    xf = np.linspace(
-        startfrom_n / Fs, # start
-        endat_n / Fs, # end
-        num = three_periods, # number of frames
-        endpoint=False
-    )
+    xf = np.arange(from_n, to_n)
+    # xf = np.linspace(
+    #     from_n / Fs, # start
+    #     to_n / Fs, # end
+    #     num = T_n_more, # number of frames
+    #     endpoint=False
+    # )
 
-    plot_signal(xf, yf, g_TimeLb, g_XtLb, g_FigureSize)
+    return xf, yf
+
+# def plot_three_periods(tone, midi_freq, startfrom_sec, Fs): 
+#     midi_period_sec = 1 / midi_freq
+#     midi_period_n = int(midi_period_sec * Fs) + 1
+#     three_periods = midi_period_n * 3
+
+#     startfrom_n = int(startfrom_sec * Fs)
+#     endat_n = startfrom_n+three_periods
+
+#     yf = g_Tones[tone, startfrom_n:endat_n]
+
+#     xf = np.linspace(
+#         startfrom_n / Fs, # start
+#         endat_n / Fs, # end
+#         num = three_periods, # number of frames
+#         endpoint=False
+#     )
+
+#     plot_signal(xf, yf, g_TimeLb, g_XtLb, g_FigureSize)
 
 def calc_rfft(sig, Fs, bigN):
     return rfftfreq(bigN, 1 / Fs), np.abs(rfft(sig + g_MkrOffset))
@@ -67,9 +87,9 @@ def calc_tone_rfft(tone, Fs, bigN):
 def to_logPSD(y):
     return np.log10(y**2)
 
-def plot_tone_rfft(tone, Fs, bigN): 
-    x, y = calc_tone_rfft(tone, Fs, bigN)
-    plot_signal(x, to_logPSD(y), g_FreqLb, g_LogPSDLb, g_FigureSize)
+# def plot_tone_rfft(tone, Fs, bigN): 
+#     x, y = calc_tone_rfft(tone, Fs, bigN)
+#     plot_signal(x, to_logPSD(y), g_FreqLb, g_LogPSDLb, g_FigureSize)
 
 def plot_tone_rfft_raw(tone, Fs, bigN): 
     x, y = calc_tone_rfft(tone, Fs, bigN)
@@ -168,7 +188,13 @@ def DTFT_multiple(sig, midif, cent, mult, dtftres, Fs, bigN):
     for m in range(1, mult+1): 
         h = 2 ** (r / 1200) * fharm
         frange = h - fharm
-        precisef, precisemod, fsweep, Xdtft = DTFT(sig, fharm, frange, dtftres, Fs, bigN)
+
+        freqlim = bigN / 2
+        if h >= freqlim:
+            continue
+        else:
+            precisef, precisemod, fsweep, Xdtft = DTFT(sig, fharm, frange, dtftres, Fs, bigN)
+        
         #plot_DTFT(fft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN)
 
         freq = precisef / m
@@ -186,15 +212,17 @@ def generate_tone(tonesig, midif, numfperiods, cent, mult, dtftres, Fs, bigN):
    
     freqs, _, mods = DTFT_multiple(tonesig, midif, cent, mult, dtftres, Fs, bigN)
 
-    l = bigN*2
-    x = rfftfreq(l, 1 / Fs)
+    freqlim = bigN / 2
+    T = bigN
+    x = rfftfreq(T, 1 / Fs)
     y = np.zeros(len(x))
 
     fis = freqs.astype(int)
     for n, fi in enumerate(fis):
-        y[fi//2] = mods[n]
+        if fi < freqlim:
+            y[fi//2] = mods[n]
     
-    siglen = l*numfperiods
+    siglen = T*numfperiods
     y = irfft(y)
     yf = y
     for _ in range(1, numfperiods): #generate periods of 0.5 sec signal
