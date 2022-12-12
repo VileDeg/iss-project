@@ -1,13 +1,11 @@
 from base import *
-from functions import *
 
 def calc_fund_freq_fft(tonesig, Fs, bigN):
     freq, psd = calc_rfft(tonesig, Fs, bigN)
     maxi = np.argmax(psd)
     return freq[maxi]
 
-def calc_fund_freq_acorr(tonesig, Fs):
-    sg = tonesig
+def calc_fund_freq_acorr(sg, Fs):
     acorr = np.correlate(sg, sg, 'full')
     acorr = acorr[len(acorr)//2:]
     df = np.diff(acorr)
@@ -28,6 +26,7 @@ def task2():
     g_DFTFreq     = np.zeros(MIDITO+1)
     g_AcorrFreq   = np.zeros(MIDITO+1)
     g_ClosestFreq = np.zeros(MIDITO+1)
+
     with (open('midi.txt', 'r')       as midif, 
         open('fft_freq.txt', 'w')     as dftf, 
         open('acorr_freq.txt', 'w')   as acorrf, 
@@ -48,20 +47,22 @@ def task2():
             acorrf.write(fmt % (t, g_AcorrFreq[t]))
             closestf.write(fmt % (t, g_ClosestFreq[t]))
 
-    picsize = (10, 3)
-    plt.figure(figsize=picsize)
+    picsize = (10, 6)
+    fig, ax = plt.subplots(2, 1, figsize=picsize)
+    fig.tight_layout(h_pad=4)
 
-    plt.plot(tonesIndices, np.abs(g_OrigFreq - g_DFTFreq)[MIDIFROM:], 'b')
-    plt.plot(tonesIndices, np.abs(g_OrigFreq - g_AcorrFreq)[MIDIFROM:], 'g')
-    plt.gca().set_xlabel("$MIDI\,Tone$")
-    plt.gca().set_ylabel("$Error\,[Hz]$")
-    plt.gca().grid()
+    ax[0].set_title("DFT(blue) and autocorrelation(orange) difference")
+    ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_DFTFreq)[MIDIFROM:],
+        label="DFT freq. estimation vs MIDI freq.")
+    ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_AcorrFreq)[MIDIFROM:],
+        label="Autocorrelation freq. estimation vs MIDI freq.")
+    ax[0].set_xlabel("$MIDI\,Tone$")
+    ax[0].set_ylabel("$Difference\,[Hz]$")
+    ax[0].legend(loc="upper right")
+
+    ax[1].set_title("Smallest frequency difference")
+    ax[1].plot(tonesIndices, np.abs(g_OrigFreq - g_ClosestFreq)[MIDIFROM:])
+    ax[1].set_xlabel("$MIDI\,Tone$")
+    ax[1].set_ylabel("$Difference\,[Hz]$")
+
     plt.savefig('FIG/dft_acorr_err.png')
-
-    plt.figure(figsize=picsize)
-
-    plt.plot(tonesIndices, np.abs(g_OrigFreq - g_ClosestFreq)[MIDIFROM:])
-    plt.gca().set_xlabel("$MIDI\,Tone$")
-    plt.gca().set_ylabel("$Error\,[Hz]$")
-    plt.gca().grid()
-    plt.savefig('FIG/closest_err.png')

@@ -1,6 +1,4 @@
 from base import *
-from functions import *
-
 
 def DTFT_freq_approx(sig, midif, cent, mult, dtftres, Fs, bigN):
     final_freq = 0
@@ -43,11 +41,21 @@ def task3(cent, mult, dtftres):
 
             g_ClosestFreq[t] = f
 
-    picsize = (10, 3)
+    picsize = (10, 6)
 
-    plt.figure(figsize=picsize)
-    plt.plot(tonesIndices, np.abs(g_ClosestFreq - g_RealFreq)[MIDIFROM:])
-    plt.gca().set_xlabel("$MIDI\,Tone$")
-    plt.gca().set_ylabel("$Difference\,[Hz]$")
-    plt.gca().grid()
-    plt.savefig('FIG/midi_vs_real_freq_diff.png')
+    fig, ax = plt.subplots(2, 1, figsize=picsize)
+    fig.tight_layout(h_pad=4)
+    
+    ax[0].set_title("DTFT vs DFT/autocorr. difference")
+    ax[0].plot(tonesIndices, np.abs(g_ClosestFreq - g_RealFreq)[MIDIFROM:])
+    ax[0].set_xlabel("$MIDI\,Tone$")
+    ax[0].set_ylabel("$Difference\,[Hz]$")
+    ax[0].grid()
+
+    ax[1].set_title("DTFT vs MIDI freq. difference")
+    ax[1].plot(tonesIndices, np.abs(g_OrigFreq - g_RealFreq)[MIDIFROM:])
+    ax[1].set_xlabel("$MIDI\,Tone$")
+    ax[1].set_ylabel("$Difference\,[Hz]$")
+    ax[1].grid()
+
+    plt.savefig('FIG/dtft_freq_diff.png')
