@@ -47,22 +47,24 @@ def task2():
             acorrf.write(fmt % (t, g_AcorrFreq[t]))
             closestf.write(fmt % (t, g_ClosestFreq[t]))
 
-    picsize = (10, 6)
-    fig, ax = plt.subplots(2, 1, figsize=picsize)
+    picsize = (10, 8)
+    fig, ax = plt.subplots(2, 1, figsize=picsize, gridspec_kw={'height_ratios': [2, 1]})
     fig.tight_layout(h_pad=4)
 
-    ax[0].set_title("DFT(blue) and autocorrelation(orange) difference")
+    ax[0].set_title("DFT and autocorrelation")
     ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_DFTFreq)[MIDIFROM:],
         label="DFT freq. estimation vs MIDI freq.")
     ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_AcorrFreq)[MIDIFROM:],
         label="Autocorrelation freq. estimation vs MIDI freq.")
     ax[0].set_xlabel("$MIDI\,Tone$")
     ax[0].set_ylabel("$Difference\,[Hz]$")
-    ax[0].legend(loc="upper right")
+    ax[0].grid()
+    ax[0].legend(loc="upper right", prop={'size': 8})
 
     ax[1].set_title("Smallest frequency difference")
     ax[1].plot(tonesIndices, np.abs(g_OrigFreq - g_ClosestFreq)[MIDIFROM:])
     ax[1].set_xlabel("$MIDI\,Tone$")
     ax[1].set_ylabel("$Difference\,[Hz]$")
+    ax[1].grid()
 
     plt.savefig('FIG/dft_acorr_err.png')

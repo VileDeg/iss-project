@@ -22,7 +22,7 @@ def generate_music(cent, mult, dtftres, tones, midif, Fs, bigN):
         synt = np.zeros((MIDITO+1, maxtonelen_n))
 
         for i in range(tonefrom, toneto):
-            freqs, mods, genx, synt[i] = generate_tone(
+            _, _, _, synt[i] = generate_tone(
                 tones[i], midif[i], maxtonelen_s, cent, mult, dtftres, Fs, bigN)
             sf.write('../audio/tmp/'+str(int(Fs))+'/'+str(i)+'.wav', synt[i], Fs)    
         out = np.zeros(outlen_n)

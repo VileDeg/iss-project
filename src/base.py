@@ -157,10 +157,10 @@ def generate_tone(tonesig, midif, seconds, cent, mult, dtftres, Fs, bigN):
     siglen = int(Fs*seconds)
     t = np.linspace(0, seconds, siglen)
     yf = np.zeros(siglen)
-    volume = 10
+    ampl = 6.4
     for i in range(mult):
         yf += mods[i] * np.cos(2*np.pi*freqs[i]*t + phases[i])
-    yf = yf / siglen * volume
+    yf = yf / siglen * ampl
     xf = np.arange(len(yf))
 
     return freqs, mods, xf, yf

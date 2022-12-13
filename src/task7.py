@@ -18,6 +18,6 @@ def task7():
     fig, ax = plt.subplots(2, 1, figsize=picsize)
 
     plot_spectrogram(48, 2048, ax[0])
-    plot_spectrogram(8, 512, ax[1])
+    plot_spectrogram(8 , 512 , ax[1])
 
     plt.savefig('FIG/spectrogram.png')
