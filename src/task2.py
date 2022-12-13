@@ -5,16 +5,20 @@ def calc_fund_freq_fft(tonesig, Fs, bigN):
     maxi = np.argmax(psd)
     return freq[maxi]
 
+def parabolic_interpolation(f, x):
+    vx = 1/2. * (f[x-1] - f[x+1]) / (f[x-1] - 2 * f[x] + f[x+1]) + x
+    return vx
+
 def calc_fund_freq_acorr(sg, Fs):
     acorr = np.correlate(sg, sg, 'full')
     acorr = acorr[len(acorr)//2:]
+
     df = np.diff(acorr)
-    for i, d in enumerate(df):
-        if d > 0:
-            start = i
-            break
+    start = np.nonzero(df > 0)[0][0]
     peak = np.argmax(acorr[start:]) + start
-    fund_freq = Fs / peak
+    px = parabolic_interpolation(acorr, peak)
+
+    fund_freq = Fs / px
     return fund_freq
 
 def task2():
@@ -52,10 +56,10 @@ def task2():
     fig.tight_layout(h_pad=4)
 
     ax[0].set_title("DFT and autocorrelation")
-    ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_DFTFreq)[MIDIFROM:],
-        label="DFT freq. estimation vs MIDI freq.")
+    ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_DFTFreq  )[MIDIFROM:],
+        label="DFT freq. estimate vs MIDI freq.")
     ax[0].plot(tonesIndices, np.abs(g_OrigFreq - g_AcorrFreq)[MIDIFROM:],
-        label="Autocorrelation freq. estimation vs MIDI freq.")
+        label="Autocorrelation freq. estimate vs MIDI freq.")
     ax[0].set_xlabel("$MIDI\,Tone$")
     ax[0].set_ylabel("$Difference\,[Hz]$")
     ax[0].grid()

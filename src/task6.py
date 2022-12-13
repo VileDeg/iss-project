@@ -24,7 +24,6 @@ def generate_music(cent, mult, dtftres, tones, midif, Fs, bigN):
         for i in range(tonefrom, toneto):
             _, _, _, synt[i] = generate_tone(
                 tones[i], midif[i], maxtonelen_s, cent, mult, dtftres, Fs, bigN)
-            sf.write('../audio/tmp/'+str(int(Fs))+'/'+str(i)+'.wav', synt[i], Fs)    
         out = np.zeros(outlen_n)
         skladf.seek(0)
         for line in skladf:

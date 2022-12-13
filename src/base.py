@@ -45,7 +45,7 @@ def Init():
     
     mytones = [36, 44, 103]
 
-    plt.rcParams.update({'font.size': 12})
+    #plt.rcParams.update({'font.size': 10})
 
     return tones, midifreq, mytones, Fs, bigN
 

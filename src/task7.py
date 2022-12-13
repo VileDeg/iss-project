@@ -14,8 +14,8 @@ def plot_spectrogram(fsnum, padto, ax):
     ax.set_ylabel('$Frequency\,[Hz]$')
 
 def task7():
-    picsize=(10,12)
-    fig, ax = plt.subplots(2, 1, figsize=picsize)
+    fig, ax = plt.subplots(2, 1, figsize=(10,12))
+    fig.tight_layout(h_pad=4)
 
     plot_spectrogram(48, 2048, ax[0])
     plot_spectrogram(8 , 512 , ax[1])
