@@ -45,8 +45,6 @@ def Init():
     
     mytones = [36, 44, 103]
 
-    #plt.rcParams.update({'font.size': 10})
-
     return tones, midifreq, mytones, Fs, bigN
 
 def get_signal_periods(sig, f0, periods, from_sec, Fs):
@@ -91,18 +89,11 @@ def DTFT(x, fharm, range, resolution, Fs, bigN):
     return precisefmax, precisefmaxmod, precfmaxphase, fsweep, Xdtftmod
 
 def plot_DTFT(dft, fsweep, Xdtft, fharm, frange, mult, Fs, bigN):
-    # X = dft
-    # N = bigN
     fmax = fharm
-
-    # kall = np.arange(0,int(N/2) +1)
-    # Xmag = np.abs(X[kall])
-    # f = kall / N * Fs
-
+    
     zoom = 1 / fharm * mult * 100 * 10
     _, ax = plt.subplots(2,1, figsize=(10,4))
-    # ax[0].plot(zoomed(f, zoom), zoomed(Xmag, zoom))
-    # ax[0].set_ylabel('$|X[k]|$')
+    
     freqs = np.linspace(0, len(dft), bigN)
     ax[0].plot(zoomed(freqs, zoom), zoomed(dft, zoom))
 
@@ -157,7 +148,7 @@ def generate_tone(tonesig, midif, seconds, cent, mult, dtftres, Fs, bigN):
     siglen = int(Fs*seconds)
     t = np.linspace(0, seconds, siglen)
     yf = np.zeros(siglen)
-    ampl = 6.4
+    ampl = 6
     for i in range(mult):
         yf += mods[i] * np.cos(2*np.pi*freqs[i]*t + phases[i])
     yf = yf / siglen * ampl

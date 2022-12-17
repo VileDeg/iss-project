@@ -11,12 +11,12 @@ def task1():
     fig, ax = plt.subplots(6, 1, figsize=(10,18))
     fig.tight_layout(h_pad=4)
 
-    for i, ct in enumerate(mytones):
+    for i, ct in enumerate(mytones): # plot 3 periods of my tones
         xf, yf = get_signal_periods(tones[ct], midif[ct], 3, from_sec[i], Fs)
 
         ax[i*2].set_title("Three periods of tone "+str(ct))
-        ax[i*2].plot(xf / Fs, yf)
-        ax[i*2].set_xlabel('$Time\,[s]$')
+        ax[i*2].plot(xf/Fs*1000, yf)
+        ax[i*2].set_xlabel('$Time\,[ms]$')
         ax[i*2].set_ylabel('$Amplitude$')
         ax[i*2].grid()    
 
@@ -27,13 +27,13 @@ def task1():
         ax[i*2+1].set_ylabel('$log(PSD)$')
         ax[i*2+1].grid()
 
-        plt.savefig('FIG/tone_'+str(ct)+'_one_period.png')
+    plt.savefig('FIG/my_tones_three_periods.png')
     
     s, Fs = sf.read('klavir.wav')
 
     Nwholetone = int(Fs * WHOLETONE_SEC)
 
-    for i, ct in enumerate(mytones):
+    for i, ct in enumerate(mytones): # save my 1 sec of my tones
         samplefrom = (ct-MIDIFROM) * Nwholetone
         sampleto = samplefrom + Fs*2
         x = s[samplefrom:sampleto]

@@ -1,4 +1,5 @@
 from base import *
+from scipy.signal import correlate
 
 def calc_fund_freq_fft(tonesig, Fs, bigN):
     freq, psd = calc_rfft(tonesig, Fs, bigN)
@@ -10,7 +11,7 @@ def parabolic_interpolation(f, x):
     return vx
 
 def calc_fund_freq_acorr(sg, Fs):
-    acorr = np.correlate(sg, sg, 'full')
+    acorr = correlate(sg, sg, 'full')
     acorr = acorr[len(acorr)//2:]
 
     df = np.diff(acorr)

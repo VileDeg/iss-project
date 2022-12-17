@@ -18,14 +18,14 @@ def task5(seconds, cent, mult, dtftres):
         xf, yf = get_signal_periods(tones[ct], midif[ct], displayperiods, start, Fs)
 
         ax[i].set_title("Tone "+str(ct))
-        ax[i].plot(xf, yf, label="original signal")
-        ax[i].set_xlabel('$Time\,[s]$')
+        ax[i].plot(xf/Fs*1000, yf, label="original signal")
+        ax[i].set_xlabel('$Time\,[ms]$')
         ax[i].set_ylabel('$Amplitude$')
 
         f0 = freqs[0]
         xf, yf = get_signal_periods(geny, f0, displayperiods, start, Fs)
 
-        ax[i].plot(xf, yf, label="synthesized signal")
+        ax[i].plot(xf/Fs*1000, yf, label="synthesized signal")
         ax[i].grid()
         ax[i].legend(loc="lower right", prop={'size': 8})
 
